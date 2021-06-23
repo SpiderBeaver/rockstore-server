@@ -1,5 +1,16 @@
-GET http://localhost:3000/products
+GET http://localhost:3001/products
 
 ###
 
-GET http://localhost:3000/products/2
+GET http://localhost:3001/products/2
+
+### 
+
+POST http://localhost:3001/products HTTP/1.1
+content-type: application/json
+
+{
+    "product": {
+        "name": "Product 3"
+    }    
+}

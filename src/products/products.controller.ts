@@ -1,13 +1,21 @@
 import {
+  Body,
   Controller,
   Get,
   HttpException,
   HttpStatus,
   Param,
+  Post,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
+
+class CreateProductDto {
+  product!: {
+    name: string;
+  };
+}
 
 @Controller('products')
 export class ProductsController {
@@ -30,6 +38,14 @@ export class ProductsController {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
 
+    return product;
+  }
+
+  @Post()
+  async create(@Body() dto: CreateProductDto) {
+    console.log(dto);
+    const product = this.productsRepository.create(dto.product);
+    await this.productsRepository.save(product);
     return product;
   }
 }
