@@ -7,4 +7,7 @@ export class Product {
 
   @Column()
   name!: string;
+
+  @Column({ nullable: true })
+  pictureFilename?: string;
 }
