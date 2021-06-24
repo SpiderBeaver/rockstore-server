@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Product } from './products/product.entity';
@@ -19,6 +21,10 @@ import { ProductsController } from './products/products.controller';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Product]),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController, ProductsController],
   providers: [AppService],
