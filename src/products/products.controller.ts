@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,7 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import crypto from 'crypto';
 import { diskStorage } from 'multer';
 import path from 'path';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Product } from './product.entity';
 
 class CreateProductDto {
@@ -31,8 +32,25 @@ export class ProductsController {
   ) {}
 
   @Get()
-  async findAll() {
-    const products = await this.productsRepository.find();
+  async list(
+    @Query('limit') limitString: string | undefined,
+    @Query('offset') offsetString: string | undefined,
+  ) {
+    const options: FindManyOptions<Product> = {};
+
+    options.order = { id: 'DESC' };
+
+    const limit = limitString !== undefined ? parseInt(limitString) : null;
+    if (limit !== null) {
+      options.take = limit;
+    }
+
+    const offset = offsetString !== undefined ? parseInt(offsetString) : null;
+    if (offset !== null) {
+      options.skip = offset;
+    }
+
+    const products = await this.productsRepository.find(options);
     return products;
   }
 
