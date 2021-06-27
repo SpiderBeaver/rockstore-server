@@ -54,6 +54,12 @@ export class ProductsController {
     return products;
   }
 
+  @Get('/count')
+  async count() {
+    const count = await this.productsRepository.count();
+    return { count: count };
+  }
+
   @Get(':id')
   async findById(@Param('id') idString: string) {
     const id = parseInt(idString);

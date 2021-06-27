@@ -2,6 +2,10 @@ GET http://localhost:3001/products
 
 ###
 
+GET http://localhost:3001/products/count
+
+###
+
 GET http://localhost:3001/products?limit=2&offset=2
 
 ###
