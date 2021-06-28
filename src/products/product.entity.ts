@@ -10,4 +10,7 @@ export class Product {
 
   @Column({ nullable: true })
   pictureFilename?: string;
+
+  @Column({ default: false })
+  isDeleted!: boolean;
 }

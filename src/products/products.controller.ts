@@ -44,6 +44,8 @@ export class ProductsController {
   ) {
     const options: FindManyOptions<Product> = {};
 
+    options.where = { isDeleted: false };
+
     options.order = { id: 'DESC' };
 
     const limit = limitString !== undefined ? parseInt(limitString) : null;
@@ -62,7 +64,9 @@ export class ProductsController {
 
   @Get('/count')
   async count() {
-    const count = await this.productsRepository.count();
+    const count = await this.productsRepository.count({
+      where: { isDeleted: false },
+    });
     return { count: count };
   }
 
@@ -98,6 +102,18 @@ export class ProductsController {
     if (dto.product.name !== undefined) {
       product.name = dto.product.name;
     }
+    await this.productsRepository.save(product);
+    return product;
+  }
+
+  @Post(':id/delete')
+  async deleteProduct(@Param('id') idString: string) {
+    const id = parseInt(idString);
+    const product = await this.productsRepository.findOne(id);
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+    product.isDeleted = true;
     await this.productsRepository.save(product);
     return product;
   }

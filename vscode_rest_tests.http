@@ -6,7 +6,7 @@ GET http://localhost:3001/products/count
 
 ###
 
-GET http://localhost:3001/products?limit=2&offset=2
+GET http://localhost:3001/products?limit=200&offset=0
 
 ###
 
@@ -33,3 +33,7 @@ content-type: application/json
         "name": "Product 1 1"
     }    
 }
+
+###
+POST http://localhost:3001/products/43/delete HTTP/1.1
+content-type: application/json
