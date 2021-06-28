@@ -10,7 +10,7 @@ GET http://localhost:3001/products?limit=2&offset=2
 
 ###
 
-GET http://localhost:3001/products/2
+GET http://localhost:3001/products/1
 
 ### 
 
@@ -20,5 +20,16 @@ content-type: application/json
 {
     "product": {
         "name": "Product 3"
+    }    
+}
+
+### 
+
+POST http://localhost:3001/products/1/edit HTTP/1.1
+content-type: application/json
+
+{
+    "product": {
+        "name": "Product 1 1"
     }    
 }

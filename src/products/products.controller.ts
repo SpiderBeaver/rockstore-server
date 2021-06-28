@@ -24,6 +24,12 @@ class CreateProductDto {
   };
 }
 
+class EditProductDto {
+  product!: {
+    name?: string;
+  };
+}
+
 @Controller('products')
 export class ProductsController {
   constructor(
@@ -74,6 +80,24 @@ export class ProductsController {
   @Post()
   async create(@Body() dto: CreateProductDto) {
     const product = this.productsRepository.create(dto.product);
+    await this.productsRepository.save(product);
+    return product;
+  }
+
+  @Post(':id/edit')
+  async editProduct(
+    @Param('id') idString: string,
+    @Body() dto: EditProductDto,
+  ) {
+    const id = parseInt(idString);
+    const product = await this.productsRepository.findOne(id);
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (dto.product.name !== undefined) {
+      product.name = dto.product.name;
+    }
     await this.productsRepository.save(product);
     return product;
   }
