@@ -1,3 +1,4 @@
+import { ColumnNumericTransformer } from 'src/utils/ColumnNumericTrnsformer';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -10,6 +11,9 @@ export class Product {
 
   @Column({ type: 'character varying', nullable: true })
   pictureFilename!: string | null;
+
+  @Column({ type: 'numeric', transformer: new ColumnNumericTransformer() })
+  price!: number;
 
   @Column({ default: false })
   isDeleted!: boolean;
