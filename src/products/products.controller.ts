@@ -157,4 +157,16 @@ export class ProductsController {
     await this.productsRepository.save(product);
     return product;
   }
+
+  @Post(':id/picture/delete')
+  async deletePicture(@Param('id') idString: string) {
+    const id = parseInt(idString);
+    const product = await this.productsRepository.findOne(id);
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+    product.pictureFilename = null;
+    const productUpdated = await this.productsRepository.save(product);
+    return productUpdated;
+  }
 }

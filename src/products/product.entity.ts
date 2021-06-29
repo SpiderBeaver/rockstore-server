@@ -8,8 +8,8 @@ export class Product {
   @Column()
   name!: string;
 
-  @Column({ nullable: true })
-  pictureFilename?: string;
+  @Column({ type: 'character varying', nullable: true })
+  pictureFilename!: string | null;
 
   @Column({ default: false })
   isDeleted!: boolean;
