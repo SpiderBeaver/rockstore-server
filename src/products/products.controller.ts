@@ -15,7 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import crypto from 'crypto';
 import { diskStorage } from 'multer';
 import path from 'path';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, ILike, Repository } from 'typeorm';
 import { Product } from './product.entity';
 
 class CreateProductDto {
@@ -41,10 +41,14 @@ export class ProductsController {
   async list(
     @Query('limit') limitString: string | undefined,
     @Query('offset') offsetString: string | undefined,
+    @Query('query') queryString: string | undefined,
   ) {
     const options: FindManyOptions<Product> = {};
 
     options.where = { isDeleted: false };
+    if (queryString != undefined) {
+      options.where.name = ILike(`%${queryString}%`);
+    }
 
     options.order = { id: 'DESC' };
 
