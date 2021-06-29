@@ -41,3 +41,6 @@ content-type: application/json
 ###
 POST http://localhost:3001/products/43/delete HTTP/1.1
 content-type: application/json
+
+###
+GET http://localhost:3001/orders

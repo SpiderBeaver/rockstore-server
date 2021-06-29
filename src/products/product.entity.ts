@@ -1,5 +1,6 @@
+import { OrderToProduct } from 'src/orders/orderToProduct.entity';
 import { ColumnNumericTransformer } from 'src/utils/ColumnNumericTrnsformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -14,6 +15,9 @@ export class Product {
 
   @Column({ type: 'numeric', transformer: new ColumnNumericTransformer() })
   price!: number;
+
+  @OneToMany(() => OrderToProduct, (orderToProduct) => orderToProduct.product)
+  orderToProducts!: OrderToProduct[];
 
   @Column({ default: false })
   isDeleted!: boolean;
