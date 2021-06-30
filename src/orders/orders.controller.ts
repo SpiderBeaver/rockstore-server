@@ -59,4 +59,10 @@ export class OrdersController {
     );
     return ordersDto;
   }
+
+  @Get('/count')
+  async count() {
+    const count = await this.ordersRepository.count();
+    return { count: count };
+  }
 }

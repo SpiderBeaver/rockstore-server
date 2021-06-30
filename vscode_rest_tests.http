@@ -44,3 +44,6 @@ content-type: application/json
 
 ###
 GET http://localhost:3001/orders?limit=10&offset=2
+
+###
+GET http://localhost:3001/orders/count
