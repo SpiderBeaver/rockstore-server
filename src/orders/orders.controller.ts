@@ -1,7 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Order } from './order.entity';
+import { OrderToProduct } from './orderToProduct.entity';
 
 interface OrderDto {
   id: number;
@@ -15,11 +16,19 @@ interface OrderDto {
   }[];
 }
 
+class CreateOrderDto {
+  products!: {
+    id: number;
+  }[];
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
+    @InjectRepository(OrderToProduct)
+    private orderToProductsRepository: Repository<OrderToProduct>,
   ) {}
 
   @Get()
@@ -64,5 +73,39 @@ export class OrdersController {
   async count() {
     const count = await this.ordersRepository.count();
     return { count: count };
+  }
+
+  @Post()
+  async create(@Body() dto: CreateOrderDto) {
+    const order = this.ordersRepository.create();
+    await this.ordersRepository.save(order);
+
+    for (const product of dto.products) {
+      const orderProduct = this.orderToProductsRepository.create({
+        orderId: order.id,
+        productId: product.id,
+      });
+      await this.orderToProductsRepository.save(orderProduct);
+    }
+
+    const newOrder = await this.ordersRepository.findOne(order.id, {
+      relations: ['orderToProducts', 'orderToProducts.product'],
+    });
+    if (newOrder !== undefined) {
+      const newOrderDto: OrderDto = {
+        id: newOrder.id,
+        items: newOrder.orderToProducts.map((otp) => ({
+          product: {
+            id: otp.product.id,
+            name: otp.product.name,
+            pictureFilename: otp.product.pictureFilename,
+            price: otp.product.price,
+          },
+        })),
+      };
+      return newOrderDto;
+    } else {
+      throw Error();
+    }
   }
 }

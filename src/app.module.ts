@@ -22,8 +22,9 @@ import { OrdersController } from './orders/orders.controller';
       database: 'rockstore',
       entities: [Product, Order, OrderToProduct],
       synchronize: true,
+      logging: true,
     }),
-    TypeOrmModule.forFeature([Product, Order]),
+    TypeOrmModule.forFeature([Product, Order, OrderToProduct]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
