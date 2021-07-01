@@ -1,6 +1,14 @@
 import { OrderToProduct } from 'src/orders/orderToProduct.entity';
 import { ColumnNumericTransformer } from 'src/utils/ColumnNumericTrnsformer';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Product {
@@ -19,6 +27,12 @@ export class Product {
   @OneToMany(() => OrderToProduct, (orderToProduct) => orderToProduct.product)
   orderToProducts!: OrderToProduct[];
 
-  @Column({ default: false })
-  isDeleted!: boolean;
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp with time zone' })
+  deletedAt!: Date;
 }

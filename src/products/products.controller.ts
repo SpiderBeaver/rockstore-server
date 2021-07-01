@@ -47,7 +47,7 @@ export class ProductsController {
   ) {
     const options: FindManyOptions<Product> = {};
 
-    options.where = { isDeleted: false };
+    options.where = {};
     if (queryString != undefined) {
       options.where.name = ILike(`%${queryString}%`);
     }
@@ -70,9 +70,7 @@ export class ProductsController {
 
   @Get('/count')
   async count() {
-    const count = await this.productsRepository.count({
-      where: { isDeleted: false },
-    });
+    const count = await this.productsRepository.count();
     return { count: count };
   }
 
@@ -118,13 +116,12 @@ export class ProductsController {
   @Post(':id/delete')
   async deleteProduct(@Param('id') idString: string) {
     const id = parseInt(idString);
-    const product = await this.productsRepository.findOne(id);
-    if (!product) {
+    const result = await this.productsRepository.softDelete(id);
+    if (result.affected === 0) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    } else {
+      return { status: 'ok' };
     }
-    product.isDeleted = true;
-    await this.productsRepository.save(product);
-    return product;
   }
 
   @Post(':id/picture')
