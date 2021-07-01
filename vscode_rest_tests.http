@@ -58,3 +58,6 @@ content-type: application/json
         {"id": 5}
     ]
 }
+
+###
+POST http://localhost:3001/orders/30/delete

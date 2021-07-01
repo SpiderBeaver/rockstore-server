@@ -1,4 +1,11 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { OrderToProduct } from './orderToProduct.entity';
 
 @Entity()
@@ -8,4 +15,13 @@ export class Order {
 
   @OneToMany(() => OrderToProduct, (orderToProduct) => orderToProduct.order)
   orderToProducts!: OrderToProduct[];
+
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp with time zone' })
+  deletedAt!: Date;
 }

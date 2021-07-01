@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Order } from './order.entity';
@@ -106,6 +115,17 @@ export class OrdersController {
       return newOrderDto;
     } else {
       throw Error();
+    }
+  }
+
+  @Post(':id/delete')
+  async deleteOrder(@Param('id') idString: string) {
+    const id = parseInt(idString);
+    const result = await this.ordersRepository.softDelete(id);
+    if (result.affected === 0) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    } else {
+      return { status: 'ok' };
     }
   }
 }
