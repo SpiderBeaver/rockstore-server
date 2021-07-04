@@ -18,4 +18,7 @@ export class OrderToProduct {
 
   @ManyToOne(() => Product, (product) => product.orderToProducts)
   product!: Product;
+
+  @Column({ default: 1 })
+  count!: number;
 }

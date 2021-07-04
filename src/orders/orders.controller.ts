@@ -22,12 +22,14 @@ interface OrderDto {
       pictureFilename: string | null;
       price: number;
     };
+    count: number;
   }[];
 }
 
 class CreateOrderDto {
   products!: {
     id: number;
+    count: number;
   }[];
 }
 
@@ -72,6 +74,7 @@ export class OrdersController {
             pictureFilename: otp.product.pictureFilename,
             price: otp.product.price,
           },
+          count: otp.count,
         })),
       }),
     );
@@ -93,6 +96,7 @@ export class OrdersController {
       const orderProduct = this.orderToProductsRepository.create({
         orderId: order.id,
         productId: product.id,
+        count: product.count,
       });
       await this.orderToProductsRepository.save(orderProduct);
     }
@@ -110,6 +114,7 @@ export class OrdersController {
             pictureFilename: otp.product.pictureFilename,
             price: otp.product.price,
           },
+          count: otp.count,
         })),
       };
       return newOrderDto;

@@ -54,8 +54,8 @@ content-type: application/json
 
 {
     "products": [
-        {"id": 3},
-        {"id": 5}
+        {"id": 3, "count": 1},
+        {"id": 5, "count": 2}
     ]
 }
 
