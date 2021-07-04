@@ -21,6 +21,7 @@ import { Product } from './product.entity';
 class CreateProductDto {
   product!: {
     name: string;
+    description: string | null;
     price: number;
   };
 }
@@ -28,6 +29,7 @@ class CreateProductDto {
 class EditProductDto {
   product!: {
     name?: string;
+    description?: string | null;
     price?: number;
   };
 }
@@ -108,6 +110,9 @@ export class ProductsController {
     }
     if (dto.product.price !== undefined) {
       product.price = dto.product.price;
+    }
+    if (dto.product.description !== undefined) {
+      product.description = dto.product.description;
     }
     await this.productsRepository.save(product);
     return product;

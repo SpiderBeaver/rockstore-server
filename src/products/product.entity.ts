@@ -19,6 +19,9 @@ export class Product {
   name!: string;
 
   @Column({ type: 'character varying', nullable: true })
+  description!: string | null;
+
+  @Column({ type: 'character varying', nullable: true })
   pictureFilename!: string | null;
 
   @Column({ type: 'numeric', transformer: new ColumnNumericTransformer() })
