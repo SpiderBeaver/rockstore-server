@@ -21,6 +21,7 @@ import { Product } from './product.entity';
 class CreateProductDto {
   product!: {
     name: string;
+    sku: string;
     description: string | null;
     price: number;
   };
@@ -29,6 +30,7 @@ class CreateProductDto {
 class EditProductDto {
   product!: {
     name?: string;
+    sku?: string;
     description?: string | null;
     price?: number;
   };
@@ -107,6 +109,9 @@ export class ProductsController {
 
     if (dto.product.name !== undefined) {
       product.name = dto.product.name;
+    }
+    if (dto.product.sku !== undefined) {
+      product.sku = dto.product.sku;
     }
     if (dto.product.price !== undefined) {
       product.price = dto.product.price;
