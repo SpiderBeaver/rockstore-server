@@ -24,6 +24,7 @@ class CreateProductDto {
     sku: string;
     description: string | null;
     price: number;
+    isStock: number;
   };
 }
 
@@ -33,6 +34,7 @@ class EditProductDto {
     sku?: string;
     description?: string | null;
     price?: number;
+    inStock?: number;
   };
 }
 
@@ -101,6 +103,8 @@ export class ProductsController {
     @Param('id') idString: string,
     @Body() dto: EditProductDto,
   ) {
+    console.log(dto);
+
     const id = parseInt(idString);
     const product = await this.productsRepository.findOne(id);
     if (!product) {
@@ -118,6 +122,9 @@ export class ProductsController {
     }
     if (dto.product.description !== undefined) {
       product.description = dto.product.description;
+    }
+    if (dto.product.inStock !== undefined) {
+      product.inStock = dto.product.inStock;
     }
     await this.productsRepository.save(product);
     return product;

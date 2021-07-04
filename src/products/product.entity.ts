@@ -30,6 +30,9 @@ export class Product {
   @Column({ type: 'numeric', transformer: new ColumnNumericTransformer() })
   price!: number;
 
+  @Column({ default: 1 })
+  inStock!: number;
+
   @OneToMany(() => OrderToProduct, (orderToProduct) => orderToProduct.product)
   orderToProducts!: OrderToProduct[];
 
