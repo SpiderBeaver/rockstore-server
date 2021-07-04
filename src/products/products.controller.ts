@@ -18,6 +18,9 @@ import path from 'path';
 import { FindManyOptions, ILike, Repository } from 'typeorm';
 import { Product } from './product.entity';
 
+type ProductSortField = 'sku' | 'name' | 'price' | 'inStock';
+type SortOrder = 'asc' | 'desc';
+
 class CreateProductDto {
   product!: {
     name: string;
@@ -49,6 +52,8 @@ export class ProductsController {
   async list(
     @Query('limit') limitString: string | undefined,
     @Query('offset') offsetString: string | undefined,
+    @Query('sortField') sortField: ProductSortField | undefined,
+    @Query('sortOrder') sortOrder: SortOrder | undefined,
     @Query('query') queryString: string | undefined,
   ) {
     const options: FindManyOptions<Product> = {};
@@ -58,7 +63,29 @@ export class ProductsController {
       options.where.name = ILike(`%${queryString}%`);
     }
 
-    options.order = { id: 'DESC' };
+    /** Convers sort order for the query to the format acceptable by TypeOrm */
+
+    const typeOrmOrder =
+      sortOrder === undefined || sortOrder === 'asc' ? 'ASC' : 'DESC';
+
+    if (sortField !== undefined) {
+      switch (sortField) {
+        case 'sku':
+          options.order = { sku: typeOrmOrder };
+          break;
+        case 'name':
+          options.order = { name: typeOrmOrder };
+          break;
+        case 'price':
+          options.order = { price: typeOrmOrder };
+          break;
+        case 'inStock':
+          options.order = { inStock: typeOrmOrder };
+          break;
+      }
+    } else {
+      options.order = { id: 'ASC' };
+    }
 
     const limit = limitString !== undefined ? parseInt(limitString) : null;
     if (limit !== null) {

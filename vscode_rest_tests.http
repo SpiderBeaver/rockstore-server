@@ -1,4 +1,4 @@
-GET http://localhost:3001/products
+GET http://localhost:3001/products?sortField=name&sortOrder=desc
 
 ###
 GET http://localhost:3001/products?query=Qwe
