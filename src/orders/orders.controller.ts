@@ -24,6 +24,7 @@ interface OrderDto {
     };
     count: number;
   }[];
+  createdAt: Date;
 }
 
 class CreateOrderDto {
@@ -76,6 +77,7 @@ export class OrdersController {
           },
           count: otp.count,
         })),
+        createdAt: order.createdAt,
       }),
     );
     return ordersDto;
@@ -116,6 +118,7 @@ export class OrdersController {
           },
           count: otp.count,
         })),
+        createdAt: newOrder.createdAt,
       };
       return newOrderDto;
     } else {
