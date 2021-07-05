@@ -1,17 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
-import { Order } from './order.entity';
-import { OrderToProduct } from './orderToProduct.entity';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { PrismaService } from 'src/prisma.service';
 
 interface OrderDto {
   id: number;
@@ -36,46 +24,35 @@ class CreateOrderDto {
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    @InjectRepository(Order)
-    private ordersRepository: Repository<Order>,
-    @InjectRepository(OrderToProduct)
-    private orderToProductsRepository: Repository<OrderToProduct>,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   @Get()
   async list(
     @Query('limit') limitString: string | undefined,
     @Query('offset') offsetString: string | undefined,
   ) {
-    const options: FindManyOptions<Order> = {};
+    const limit = limitString !== undefined ? parseInt(limitString) : undefined;
+    const offset =
+      offsetString !== undefined ? parseInt(offsetString) : undefined;
 
-    options.order = { id: 'DESC' };
+    const orders = await this.prismaService.client.order.findMany({
+      orderBy: { id: 'desc' },
+      skip: offset,
+      take: limit,
+      include: { orderProducts: { include: { product: true } } },
+    });
 
-    const limit = limitString !== undefined ? parseInt(limitString) : null;
-    if (limit !== null) {
-      options.take = limit;
-    }
-
-    const offset = offsetString !== undefined ? parseInt(offsetString) : null;
-    if (offset !== null) {
-      options.skip = offset;
-    }
-
-    options.relations = ['orderToProducts', 'orderToProducts.product'];
-
-    const orders = await this.ordersRepository.find(options);
     const ordersDto = orders.map(
       (order): OrderDto => ({
         id: order.id,
-        items: order.orderToProducts.map((otp) => ({
+        items: order.orderProducts.map((orderProduct) => ({
           product: {
-            id: otp.product.id,
-            name: otp.product.name,
-            pictureFilename: otp.product.pictureFilename,
-            price: otp.product.price,
+            id: orderProduct.product.id,
+            name: orderProduct.product.name,
+            pictureFilename: orderProduct.product.pictureFilename,
+            price: orderProduct.product.price.toNumber(),
           },
-          count: otp.count,
+          count: orderProduct.count,
         })),
         createdAt: order.createdAt,
       }),
@@ -85,55 +62,49 @@ export class OrdersController {
 
   @Get('/count')
   async count() {
-    const count = await this.ordersRepository.count();
+    const count = await this.prismaService.client.order.count();
     return { count: count };
   }
 
   @Post()
   async create(@Body() dto: CreateOrderDto) {
-    const order = this.ordersRepository.create();
-    await this.ordersRepository.save(order);
-
-    for (const product of dto.products) {
-      const orderProduct = this.orderToProductsRepository.create({
-        orderId: order.id,
-        productId: product.id,
-        count: product.count,
-      });
-      await this.orderToProductsRepository.save(orderProduct);
-    }
-
-    const newOrder = await this.ordersRepository.findOne(order.id, {
-      relations: ['orderToProducts', 'orderToProducts.product'],
+    const order = await this.prismaService.client.order.create({
+      data: {
+        orderProducts: {
+          create: dto.products.map((product) => ({
+            productId: product.id,
+            count: 1,
+          })),
+        },
+      },
+      include: {
+        orderProducts: { include: { product: true } },
+      },
     });
-    if (newOrder !== undefined) {
-      const newOrderDto: OrderDto = {
-        id: newOrder.id,
-        items: newOrder.orderToProducts.map((otp) => ({
-          product: {
-            id: otp.product.id,
-            name: otp.product.name,
-            pictureFilename: otp.product.pictureFilename,
-            price: otp.product.price,
-          },
-          count: otp.count,
-        })),
-        createdAt: newOrder.createdAt,
-      };
-      return newOrderDto;
-    } else {
-      throw Error();
-    }
+
+    const newOrderDto: OrderDto = {
+      id: order.id,
+      items: order.orderProducts.map((orderProduct) => ({
+        product: {
+          id: orderProduct.product.id,
+          name: orderProduct.product.name,
+          pictureFilename: orderProduct.product.pictureFilename,
+          price: orderProduct.product.price.toNumber(),
+        },
+        count: orderProduct.count,
+      })),
+      createdAt: order.createdAt,
+    };
+    return newOrderDto;
   }
 
   @Post(':id/delete')
   async deleteOrder(@Param('id') idString: string) {
     const id = parseInt(idString);
-    const result = await this.ordersRepository.softDelete(id);
-    if (result.affected === 0) {
-      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
-    } else {
-      return { status: 'ok' };
-    }
+    const order = await this.prismaService.client.order.update({
+      where: { id: id },
+      data: { deletedAt: new Date() },
+    });
+    return order;
   }
 }
