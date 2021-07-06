@@ -11,10 +11,33 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Product } from '@prisma/client';
 import crypto from 'crypto';
 import { diskStorage } from 'multer';
 import path from 'path';
 import { PrismaService } from 'src/prisma.service';
+
+export interface ProductDto {
+  id: number;
+  name: string;
+  sku: string;
+  description: string | null;
+  pictureFilename: string | null;
+  price: number;
+  inStock: number;
+}
+
+function productToDto(product: Product): ProductDto {
+  return {
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    description: product.description,
+    pictureFilename: product.pictureFilename,
+    price: product.price.toNumber(),
+    inStock: product.inStock,
+  };
+}
 
 type ProductSortField = 'sku' | 'name' | 'price' | 'inStock';
 type SortOrder = 'asc' | 'desc';
@@ -50,7 +73,7 @@ export class ProductsController {
     @Query('sortField') sortField: ProductSortField | undefined,
     @Query('sortOrder') sortOrder: SortOrder | undefined,
     @Query('query') queryString: string | undefined,
-  ) {
+  ): Promise<ProductDto[]> {
     const orderByParams = (
       sortField: ProductSortField,
       sortOrder?: SortOrder,
@@ -84,20 +107,19 @@ export class ProductsController {
       skip: offset,
       take: limit,
     });
-    return products.map((product) => ({
-      ...product,
-      price: product.price.toNumber(),
-    }));
+
+    const productDtos = products.map((product) => productToDto(product));
+    return productDtos;
   }
 
   @Get('/count')
-  async count() {
+  async count(): Promise<{ count: number }> {
     const count = await this.prismaService.client.product.count();
     return { count: count };
   }
 
   @Get(':id')
-  async findById(@Param('id') idString: string) {
+  async findById(@Param('id') idString: string): Promise<ProductDto> {
     const id = parseInt(idString);
     const product = await this.prismaService.client.product.findFirst({
       where: { id: id },
@@ -106,22 +128,24 @@ export class ProductsController {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
 
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 
   @Post()
-  async create(@Body() dto: CreateProductDto) {
+  async create(@Body() dto: CreateProductDto): Promise<ProductDto> {
     const product = await this.prismaService.client.product.create({
       data: { ...dto.product },
     });
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 
   @Post(':id/edit')
   async editProduct(
     @Param('id') idString: string,
     @Body() dto: EditProductDto,
-  ) {
+  ): Promise<ProductDto> {
     const id = parseInt(idString);
 
     const product = await this.prismaService.client.product.update({
@@ -129,17 +153,19 @@ export class ProductsController {
       where: { id: id },
     });
 
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 
   @Post(':id/delete')
-  async deleteProduct(@Param('id') idString: string) {
+  async deleteProduct(@Param('id') idString: string): Promise<ProductDto> {
     const id = parseInt(idString);
     const product = await this.prismaService.client.product.update({
       where: { id: id },
       data: { deletedAt: new Date() },
     });
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 
   @Post(':id/picture')
@@ -167,23 +193,25 @@ export class ProductsController {
   async uploadPicture(
     @Param('id') idString: string,
     @UploadedFile() file: Express.Multer.File,
-  ) {
+  ): Promise<ProductDto> {
     const id = parseInt(idString);
     const product = await this.prismaService.client.product.update({
       where: { id: id },
       data: { pictureFilename: file.filename },
     });
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 
   @Post(':id/picture/delete')
-  async deletePicture(@Param('id') idString: string) {
+  async deletePicture(@Param('id') idString: string): Promise<ProductDto> {
     const id = parseInt(idString);
 
     const product = await this.prismaService.client.product.update({
       where: { id: id },
       data: { pictureFilename: null },
     });
-    return product;
+    const productDto = productToDto(product);
+    return productDto;
   }
 }
