@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Order, OrderProduct, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 interface OrderDto {
@@ -13,6 +14,29 @@ interface OrderDto {
     count: number;
   }[];
   createdAt: Date;
+}
+
+function orderToDto(
+  order: Order & {
+    orderProducts: (OrderProduct & {
+      product: Product;
+    })[];
+  },
+): OrderDto {
+  const dto = {
+    id: order.id,
+    items: order.orderProducts.map((orderProduct) => ({
+      product: {
+        id: orderProduct.product.id,
+        name: orderProduct.product.name,
+        pictureFilename: orderProduct.product.pictureFilename,
+        price: orderProduct.product.price.toNumber(),
+      },
+      count: orderProduct.count,
+    })),
+    createdAt: order.createdAt,
+  };
+  return dto;
 }
 
 class CreateOrderDto {
@@ -30,7 +54,7 @@ export class OrdersController {
   async list(
     @Query('limit') limitString: string | undefined,
     @Query('offset') offsetString: string | undefined,
-  ) {
+  ): Promise<OrderDto[]> {
     const limit = limitString !== undefined ? parseInt(limitString) : undefined;
     const offset =
       offsetString !== undefined ? parseInt(offsetString) : undefined;
@@ -42,32 +66,18 @@ export class OrdersController {
       include: { orderProducts: { include: { product: true } } },
     });
 
-    const ordersDto = orders.map(
-      (order): OrderDto => ({
-        id: order.id,
-        items: order.orderProducts.map((orderProduct) => ({
-          product: {
-            id: orderProduct.product.id,
-            name: orderProduct.product.name,
-            pictureFilename: orderProduct.product.pictureFilename,
-            price: orderProduct.product.price.toNumber(),
-          },
-          count: orderProduct.count,
-        })),
-        createdAt: order.createdAt,
-      }),
-    );
+    const ordersDto = orders.map((order) => orderToDto(order));
     return ordersDto;
   }
 
   @Get('/count')
-  async count() {
+  async count(): Promise<{ count: number }> {
     const count = await this.prismaService.client.order.count();
     return { count: count };
   }
 
   @Post()
-  async create(@Body() dto: CreateOrderDto) {
+  async create(@Body() dto: CreateOrderDto): Promise<OrderDto> {
     const order = await this.prismaService.client.order.create({
       data: {
         orderProducts: {
@@ -82,29 +92,21 @@ export class OrdersController {
       },
     });
 
-    const newOrderDto: OrderDto = {
-      id: order.id,
-      items: order.orderProducts.map((orderProduct) => ({
-        product: {
-          id: orderProduct.product.id,
-          name: orderProduct.product.name,
-          pictureFilename: orderProduct.product.pictureFilename,
-          price: orderProduct.product.price.toNumber(),
-        },
-        count: orderProduct.count,
-      })),
-      createdAt: order.createdAt,
-    };
+    const newOrderDto = orderToDto(order);
     return newOrderDto;
   }
 
   @Post(':id/delete')
-  async deleteOrder(@Param('id') idString: string) {
+  async deleteOrder(@Param('id') idString: string): Promise<OrderDto> {
     const id = parseInt(idString);
     const order = await this.prismaService.client.order.update({
       where: { id: id },
       data: { deletedAt: new Date() },
+      include: {
+        orderProducts: { include: { product: true } },
+      },
     });
-    return order;
+    const orderDto = orderToDto(order);
+    return orderDto;
   }
 }
