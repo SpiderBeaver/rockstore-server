@@ -44,7 +44,7 @@ POST http://localhost:3001/products/43/delete HTTP/1.1
 content-type: application/json
 
 ###
-GET http://localhost:3001/orders?limit=10
+GET http://localhost:3001/orders?limit=10&status=NEW
 
 ###
 GET http://localhost:3001/orders/2

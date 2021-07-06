@@ -102,14 +102,16 @@ export class OrdersController {
 
   @Get()
   async list(
-    @Query('limit') limitString: string | undefined,
-    @Query('offset') offsetString: string | undefined,
+    @Query('limit') limitString?: string,
+    @Query('offset') offsetString?: string,
+    @Query('status') status?: OrderStatus,
   ): Promise<OrderDto[]> {
     const limit = limitString !== undefined ? parseInt(limitString) : undefined;
     const offset =
       offsetString !== undefined ? parseInt(offsetString) : undefined;
 
     const orders = await this.prismaService.client.order.findMany({
+      where: status !== undefined ? { status: status } : undefined,
       orderBy: { id: 'desc' },
       skip: offset,
       take: limit,
