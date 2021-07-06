@@ -98,7 +98,12 @@ export class ProductsController {
     const products = await this.prismaService.client.product.findMany({
       where:
         queryString !== undefined
-          ? { name: { contains: queryString } }
+          ? {
+              OR: [
+                { name: { contains: queryString } },
+                { sku: { contains: queryString } },
+              ],
+            }
           : undefined,
       orderBy:
         sortField !== undefined
