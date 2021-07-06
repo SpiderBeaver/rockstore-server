@@ -74,6 +74,19 @@ class CreateOrderDto {
   };
 }
 
+class EditOrderDto {
+  products?: {
+    id: number;
+    count: number;
+  }[];
+  client?: {
+    name: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+  };
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly prismaService: PrismaService) {}
@@ -125,7 +138,7 @@ export class OrdersController {
         orderProducts: {
           create: dto.products.map((product) => ({
             productId: product.id,
-            count: 1,
+            count: product.count,
           })),
         },
         client: {
@@ -145,6 +158,50 @@ export class OrdersController {
 
     const newOrderDto = orderToDto(order);
     return newOrderDto;
+  }
+
+  @Post(':id/edit')
+  async editOrder(
+    @Param('id') idString: string,
+    @Body() dto: EditOrderDto,
+  ): Promise<OrderDto> {
+    const id = parseInt(idString);
+
+    // Update client first
+    if (dto.client) {
+      await this.prismaService.client.order.update({
+        where: { id: id },
+        data: { client: { update: dto.client } },
+      });
+    }
+
+    if (dto.products) {
+      // Remove old order products
+      await this.prismaService.client.orderProduct.deleteMany({
+        where: { orderId: id },
+      });
+
+      // Insert updated order products
+      await this.prismaService.client.orderProduct.createMany({
+        data: dto.products.map((orderProduct) => ({
+          orderId: id,
+          productId: orderProduct.id,
+          count: orderProduct.count,
+        })),
+      });
+    }
+
+    const order = await this.prismaService.client.order.findFirst({
+      where: { id: id },
+      include: { orderProducts: { include: { product: true } }, client: true },
+    });
+
+    if (order) {
+      const orderDto = orderToDto(order);
+      return orderDto;
+    } else {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
   }
 
   @Post(':id/delete')

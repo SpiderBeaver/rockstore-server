@@ -70,4 +70,21 @@ content-type: application/json
 }
 
 ###
+POST http://localhost:3001/orders/2/edit
+content-type: application/json
+
+{
+    "products": [
+        {"id": 1, "count": 1},
+        {"id": 2, "count": 2}
+    ],
+    "client": {
+        "name": "pepe3",
+        "email": "wrewr",
+        "phoneNumber": "234",
+        "address": "fffff"
+    }
+}
+
+###
 POST http://localhost:3001/orders/2/delete
