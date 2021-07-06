@@ -26,8 +26,11 @@ model Product {
 model Order {
   id            Int            @id @default(autoincrement())
   orderProducts OrderProduct[]
+  client        Client         @relation(fields: [clientId], references: [id])
+  clientId      Int
   createdAt     DateTime       @default(now())
   deletedAt     DateTime?
+
 }
 
 model OrderProduct {
@@ -37,4 +40,13 @@ model OrderProduct {
   product   Product @relation(fields: [productId], references: [id])
   productId Int
   count     Int
+}
+
+model Client {
+  id          Int     @id @default(autoincrement())
+  name        String
+  email       String
+  phoneNumber String
+  address     String
+  orders      Order[]
 }

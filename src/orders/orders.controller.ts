@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { Order, OrderProduct, Product } from '@prisma/client';
+import { Client, Order, OrderProduct, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 interface OrderDto {
@@ -13,6 +13,12 @@ interface OrderDto {
     };
     count: number;
   }[];
+  client: {
+    name: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+  };
   createdAt: Date;
 }
 
@@ -21,9 +27,10 @@ function orderToDto(
     orderProducts: (OrderProduct & {
       product: Product;
     })[];
+    client: Client;
   },
 ): OrderDto {
-  const dto = {
+  const dto: OrderDto = {
     id: order.id,
     items: order.orderProducts.map((orderProduct) => ({
       product: {
@@ -34,6 +41,12 @@ function orderToDto(
       },
       count: orderProduct.count,
     })),
+    client: {
+      name: order.client.name,
+      email: order.client.email,
+      phoneNumber: order.client.phoneNumber,
+      address: order.client.address,
+    },
     createdAt: order.createdAt,
   };
   return dto;
@@ -44,6 +57,12 @@ class CreateOrderDto {
     id: number;
     count: number;
   }[];
+  client!: {
+    name: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+  };
 }
 
 @Controller('orders')
@@ -63,7 +82,7 @@ export class OrdersController {
       orderBy: { id: 'desc' },
       skip: offset,
       take: limit,
-      include: { orderProducts: { include: { product: true } } },
+      include: { orderProducts: { include: { product: true } }, client: true },
     });
 
     const ordersDto = orders.map((order) => orderToDto(order));
@@ -86,9 +105,18 @@ export class OrdersController {
             count: 1,
           })),
         },
+        client: {
+          create: {
+            name: dto.client.name,
+            email: dto.client.email,
+            phoneNumber: dto.client.phoneNumber,
+            address: dto.client.address,
+          },
+        },
       },
       include: {
         orderProducts: { include: { product: true } },
+        client: true,
       },
     });
 
@@ -104,6 +132,7 @@ export class OrdersController {
       data: { deletedAt: new Date() },
       include: {
         orderProducts: { include: { product: true } },
+        client: true,
       },
     });
     const orderDto = orderToDto(order);

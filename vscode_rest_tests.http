@@ -57,7 +57,13 @@ content-type: application/json
     "products": [
         {"id": 1, "count": 1},
         {"id": 2, "count": 2}
-    ]
+    ],
+    "client": {
+        "name": "Pepe",
+        "email": "pe@pe.ga",
+        "phoneNumber": "1111",
+        "address": "pepegia"
+    }
 }
 
 ###
