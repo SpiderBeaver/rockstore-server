@@ -23,11 +23,19 @@ model Product {
   deletedAt       DateTime?
 }
 
+enum OrderStatus {
+  NEW
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
 model Order {
   id            Int            @id @default(autoincrement())
   orderProducts OrderProduct[]
   client        Client         @relation(fields: [clientId], references: [id])
   clientId      Int
+  status        OrderStatus    @default(NEW)
   createdAt     DateTime       @default(now())
   deletedAt     DateTime?
 

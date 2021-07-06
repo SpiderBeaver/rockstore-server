@@ -8,7 +8,13 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { Client, Order, OrderProduct, Product } from '@prisma/client';
+import {
+  Client,
+  Order,
+  OrderProduct,
+  OrderStatus,
+  Product,
+} from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 interface OrderDto {
@@ -28,6 +34,7 @@ interface OrderDto {
     phoneNumber: string;
     address: string;
   };
+  status: string;
   createdAt: Date;
 }
 
@@ -56,6 +63,7 @@ function orderToDto(
       phoneNumber: order.client.phoneNumber,
       address: order.client.address,
     },
+    status: order.status,
     createdAt: order.createdAt,
   };
   return dto;
@@ -85,6 +93,7 @@ class EditOrderDto {
     phoneNumber: string;
     address: string;
   };
+  status?: OrderStatus;
 }
 
 @Controller('orders')
@@ -188,6 +197,13 @@ export class OrdersController {
           productId: orderProduct.id,
           count: orderProduct.count,
         })),
+      });
+    }
+
+    if (dto.status) {
+      await this.prismaService.client.order.update({
+        where: { id: id },
+        data: { status: dto.status },
       });
     }
 
