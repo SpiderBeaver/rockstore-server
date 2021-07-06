@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { Client, Order, OrderProduct, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
@@ -93,6 +102,20 @@ export class OrdersController {
   async count(): Promise<{ count: number }> {
     const count = await this.prismaService.client.order.count();
     return { count: count };
+  }
+
+  @Get(':id')
+  async findById(@Param('id') idString: string): Promise<OrderDto> {
+    const id = parseInt(idString);
+    const order = await this.prismaService.client.order.findFirst({
+      where: { id: id },
+      include: { orderProducts: { include: { product: true } }, client: true },
+    });
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
+    const orderDto = orderToDto(order);
+    return orderDto;
   }
 
   @Post()
