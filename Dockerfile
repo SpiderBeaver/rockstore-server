@@ -1,14 +1,26 @@
-FROM node:16
+FROM node as deps
 
 WORKDIR /app
-
-COPY ["package.json", "package-lock.json", "./"]
-
+COPY package.json package-lock.json ./
 RUN npm install
 
-COPY dist dist
-COPY prisma prisma
-COPY start.sh start.sh
+
+FROM node as builder
+WORKDIR /app
+COPY . .
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma ./prisma
+RUN npx prisma generate
+RUN npm run build
+
+
+FROM node
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+COPY start.sh ./start.sh
 
 EXPOSE 3000
 
